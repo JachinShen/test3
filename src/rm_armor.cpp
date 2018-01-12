@@ -49,9 +49,9 @@ void Armor::init(const cv::Mat& src)
     }
 }
 
-void Armor::feedImage(const cv::Mat& src)
+void Armor::explore(const cv::Mat& src)
 {
-    static double fps;
+    double fps;
     static vector<cv::Mat> hsvSplit;
     static cv::Mat v_very_high;
     static vector<cv::RotatedRect> lights;
@@ -60,21 +60,23 @@ void Armor::feedImage(const cv::Mat& src)
     fps = tic();
     if (DRAW & SHOW_DRAW)
         light_draw = src.clone();
-    if (is_last_found) {
-        ++refresh_ctr;
-        findCircleAround(src);
-        cout << "FPS:" << 1 / (tic() - fps) << endl;
-        if (refresh_ctr == 500)
-            is_last_found = false;
-        return;
-    }
+    //if (is_last_found) {
+    //++refresh_ctr;
+    //findCircleAround(src);
+    //cout << "FPS:" << 1 / (tic() - fps) << endl;
+    //if (refresh_ctr == 500)
+    //is_last_found = false;
+    //return;
+    //}
     //cleanAll();
     cvtHSV(src, hsvSplit);
     getLightRegion(hsvSplit, v_very_high);
     findContours(v_very_high, V_contours,
         CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
-    selectContours(V_contours, lights, hsvSplit);
-    selectLights(lights, armors, src);
+    if (selectContours(V_contours, lights, hsvSplit) <= 0)
+        cout << "No Lights Left" << endl;
+    if (selectLights(lights, armors, src) <= 0)
+        cout << "No armors Left" << endl;
     is_last_found = !armors.empty();
     cout << "FPS:" << 1 / (tic() - fps) << endl;
     fps = tic();
@@ -84,6 +86,22 @@ void Armor::feedImage(const cv::Mat& src)
     V_contours.clear();
 }
 
+void Armor::track(const cv::Mat& src)
+{
+    double fps;
+    fps = tic();
+    if (DRAW & SHOW_DRAW)
+        light_draw = src.clone();
+
+    ++refresh_ctr;
+    findCircleAround(src);
+    cout << "FPS:" << 1 / (tic() - fps) << endl;
+    if (refresh_ctr == 500) {
+        is_last_found = false;
+        refresh_ctr = 0;
+    }
+    return;
+}
 void Armor::getSrcSize(const cv::Mat& src)
 {
     srcH = (int)src.size().height;
@@ -132,7 +150,7 @@ void Armor::getLightRegion(vector<cv::Mat>& hsvSplit,
     }
 }
 
-void Armor::selectContours(
+int Armor::selectContours(
     vector<vector<cv::Point>>& V_contours,
     vector<cv::RotatedRect>& lights,
     vector<cv::Mat>& hsvSplit)
@@ -158,6 +176,7 @@ void Armor::selectContours(
             cv::imshow("draw", light_draw);
         }
     }
+    return lights.size();
 }
 
 bool Armor::isAreaTooBigOrSmall(vector<cv::Point>& contour)
@@ -227,13 +246,13 @@ bool Armor::isBlueNearby(vector<cv::Mat>& hsvSplit,
         > BLUE_PIXEL_RATIO_THRESHOLD;
 }
 
-void Armor::selectLights(
+int Armor::selectLights(
     const vector<cv::RotatedRect>& lights,
     vector<cv::Point2f>& armors,
     const cv::Mat& src)
 {
     if (lights.size() <= 1)
-        return;
+        return -1;
     cv::Point2f pi;
     cv::Point2f pj;
     double midx;
@@ -283,6 +302,7 @@ void Armor::selectLights(
         cv::createTrackbar("BLUE_PIXEL_RATIO_THRESHOLD", "draw",
             &BLUE_PIXEL_RATIO_THRESHOLD, 100);
     }
+    return armors.size();
 }
 
 void Armor::chooseCloseTarget(vector<cv::Point2f>& armors)
@@ -313,15 +333,15 @@ void Armor::chooseCloseTarget(vector<cv::Point2f>& armors)
 bool Armor::isCircleInside(vector<cv::Point2f>& armors,
     cv::Mat& gray, int midx, int midy)
 {
-    int rect_x = target.x - CIRCLE_ROI_WIDTH / 2;
+    int rect_x = midx - CIRCLE_ROI_WIDTH / 2;
     rect_x = rect_x > 0 ? rect_x : 1;
-    int rect_y = target.y - CIRCLE_ROI_HEIGHT / 2;
+    int rect_y = midy - CIRCLE_ROI_HEIGHT / 2;
     rect_y = rect_y > 0 ? rect_y : 1;
-    int rect_w = target.x + CIRCLE_ROI_WIDTH / 2;
+    int rect_w = midx + CIRCLE_ROI_WIDTH / 2;
     rect_w = rect_w > srcW
         ? (rect_w - srcW)
         : CIRCLE_ROI_WIDTH - 1;
-    int rect_h = target.y + CIRCLE_ROI_HEIGHT / 2;
+    int rect_h = midy + CIRCLE_ROI_HEIGHT / 2;
     rect_h = rect_h > srcH
         ? (rect_h - srcH)
         : CIRCLE_ROI_HEIGHT - 1;

@@ -78,11 +78,11 @@ private:
     void cvtHSV(const cv::Mat& src, vector<cv::Mat>& hsvSplit);
     void cvtGray(const cv::Mat& src, cv::Mat& gray);
     void getLightRegion(vector<cv::Mat>& hsvSplit, cv::Mat& v_very_high);
-    void selectContours(vector<vector<cv::Point> >& V_contours,
+    int selectContours(vector<vector<cv::Point> >& V_contours,
         vector<cv::RotatedRect>& lights,
         vector<cv::Mat>& hsvSplit);
     bool isBlueNearby(vector<cv::Mat>& hsvSplit, vector<cv::Point>& contour);
-    void selectLights(const vector<cv::RotatedRect>& lights,
+    int selectLights(const vector<cv::RotatedRect>& lights,
         vector<cv::Point2f>& armors,
         const cv::Mat& src);
     bool isCircleInside(vector<cv::Point2f>& armors, cv::Mat& gray, int midx, int midy);
@@ -97,7 +97,8 @@ private:
 public:
     Armor();
     void init(const cv::Mat& src);
-    void feedImage(const cv::Mat& src);
+    void explore(const cv::Mat& src);
+    void track(const cv::Mat& src);
     bool isFound();
     int getTargetX();
     int getTargetY();

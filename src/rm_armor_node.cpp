@@ -45,7 +45,11 @@ int main(int argc, char* argv[])
         cap >> src;
         if (src.empty())
             break;
-        armor.feedImage(src);
+        if (armor.isFound()) {
+            armor.track(src);
+        } else {
+            armor.explore(src);
+        }
         std::stringstream ss;
         std_msgs::String armor_msg;
         ss << armor.isFound()
@@ -60,7 +64,7 @@ int main(int argc, char* argv[])
         //serial.sendTarget(armor.getTargetX(), armor.getTargetY(), armor.isFound());
 
         cv::imshow("frame", src);
-        cv::waitKey(1);
+        cv::waitKey(0);
         ros::spinOnce();
     }
     cap.release();
