@@ -140,6 +140,10 @@ add_executable(rm_armor_node
 	${PROJECT_SOURCE_DIR}/src/rm_armor_node.cpp
 	)
 target_link_libraries(rm_armor_node ${OpenCV_LIBRARIES} ${catkin_LIBRARIES})
+add_executable(rm_serial_node
+	${PROJECT_SOURCE_DIR}/src/rm_serial_node.cpp
+	)
+target_link_libraries(rm_serial_node ${catkin_LIBRARIES})
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use

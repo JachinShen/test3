@@ -1,0 +1,4 @@
+<launch>
+  <node name="rm_armor_node" pkg="test3" type="rm_armor_node" />
+  <node name="rm_serial_node" pkg="test3" type="rm_serial_node" />
+</launch>
