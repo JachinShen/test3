@@ -55,7 +55,7 @@ void Armor::explore(const cv::Mat& src)
     static vector<cv::Mat> hsvSplit;
     static cv::Mat v_very_high;
     static vector<cv::RotatedRect> lights;
-    static vector<vector<cv::Point>> V_contours;
+    static vector<vector<cv::Point> > V_contours;
     static vector<cv::Point2f> armors;
     fps = tic();
     if (DRAW & SHOW_DRAW)
@@ -151,7 +151,7 @@ void Armor::getLightRegion(vector<cv::Mat>& hsvSplit,
 }
 
 int Armor::selectContours(
-    vector<vector<cv::Point>>& V_contours,
+    vector<vector<cv::Point> >& V_contours,
     vector<cv::RotatedRect>& lights,
     vector<cv::Mat>& hsvSplit)
 {
@@ -346,7 +346,7 @@ bool Armor::isCircleInside(vector<cv::Point2f>& armors,
         ? (rect_h - srcH)
         : CIRCLE_ROI_HEIGHT - 1;
     cv::Mat roi_circle = gray(cv::Rect(rect_x, rect_y, rect_w, rect_h));
-    vector<vector<cv::Point>> gray_contours;
+    vector<vector<cv::Point> > gray_contours;
     if (DRAW & SHOW_ROI)
         cv::imshow("roi", roi_circle);
     cv::findContours(roi_circle.clone(), gray_contours,
@@ -412,7 +412,7 @@ void Armor::findCircleAround(const cv::Mat& src)
     rect_h = rect_h > srcH ? (rect_h - srcH) : CIRCLE_ROI_HEIGHT - 1;
     cv::Mat roi_possible_circle = src(cv::Rect(rect_x, rect_y, rect_w, rect_h));
 
-    cv::cvtColor(roi_possible_circle, roi_possible_circle, CV_BGR2GRAY);
+    //cv::cvtColor(roi_possible_circle, roi_possible_circle, CV_BGR2GRAY);
     cv::equalizeHist(roi_possible_circle, roi_possible_circle);
     cv::threshold(roi_possible_circle, roi_possible_circle,
         CIRCLE_GRAY_THRESHOLD, U8_MAX, cv::THRESH_BINARY);
@@ -426,7 +426,7 @@ void Armor::findCircleAround(const cv::Mat& src)
     if (DRAW & SHOW_ROI)
         cv::imshow("roi", roi_possible_circle);
 
-    vector<vector<cv::Point>> possible_circle_contours;
+    vector<vector<cv::Point> > possible_circle_contours;
     cv::findContours(roi_possible_circle, possible_circle_contours,
         CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
     cv::Point2f center(320, 240);
@@ -456,8 +456,10 @@ void Armor::findCircleAround(const cv::Mat& src)
             target = center;
             is_last_found = true;
             if (DRAW & SHOW_DRAW) {
-                cv::circle(light_draw, center, radius, cv::Scalar(0, 255, 255), 2);
-                circle(light_draw, target, 3, cv::Scalar(0, 0, 255), -1);
+                //cv::circle(light_draw, center, radius, cv::Scalar(0, 255, 255), 2);
+                //cv::circle(light_draw, target, 3, cv::Scalar(0, 0, 255), -1);
+                cv::circle(light_draw, center, radius, cv::Scalar(255), 2);
+                cv::circle(light_draw, target, 3, cv::Scalar(255), -1);
                 imshow("draw", light_draw);
                 cv::createTrackbar("H_BLUE_LOW_THRESHOLD", "draw",
                     &H_BLUE_LOW_THRESHOLD, U8_MAX);
@@ -476,6 +478,7 @@ void Armor::findCircleAround(const cv::Mat& src)
     CIRCLE_AREA_THRESH_MAX = 10000;
     CIRCLE_AREA_THRESH_MIN = 30;
     is_last_found = false;
+    target = cv::Point2f(320, 240);
 }
 
 double Armor::tic()
@@ -483,4 +486,106 @@ double Armor::tic()
     struct timeval t;
     gettimeofday(&t, NULL);
     return ((double)t.tv_sec + ((double)t.tv_usec) / 1000000.);
+}
+
+int Armor::histthre(cv::Mat& gray)
+{
+    cv::Mat hist;
+	//Size core(3,3);  //转换为灰度图
+	//GaussianBlur(gray,gray,core,0,0,BORDER_DEFAULT);
+//	Mat grad_x, grad_y;
+//	int scale = 1, delta = 0;
+//	int ddepth = CV_16S;// 图像的深度
+//	Sobel(gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT);
+//	Sobel(gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT);
+//	convertScaleAbs(grad_x, grad_x);
+//    convertScaleAbs(grad_y, grad_y);
+//    addWeighted(grad_x, 0.5, grad_y, 0.5, 0, gray);
+//    namedWindow("Sobeled",1);
+//    imshow("Sobeled", gray);
+
+//    waitKey(0);
+//    Mat element = getStructuringElement(MORPH_RECT, Size(10, 10));
+//    erode(gray,gray, element);
+//    Mat kernel = (Mat_<int>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+//    filter2D(src, src, src.depth(), kernel);
+//    cvtColor(src, gray, CV_BGR2GRAY);
+//    namedWindow("gray",1);
+//    imshow("gray",gray);
+//    waitKey(0);
+	int histSize = 256;
+	float range[] = { 0, 256 };
+	const float* histRange = { range };
+	int channels[] = {0};
+	bool uniform = true;
+	bool accumulate = false;
+
+	/*计算直方图*/
+	calcHist(&gray, 1, channels, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+	/*创建描绘直方图的“图像”，和原图大小一样*/
+	//int hist_w = gray.cols;
+//	cout << "cols: " << hist_w << endl;
+	//int hist_h = gray.rows;
+//	cout << "rows: " << hist_h << endl;
+	//一个点之间的距离，宽度是h，那么把宽度分成了256份
+
+    cv::Mat histImage(100, 256*3, CV_8UC3, cv::Scalar(0, 0, 0));//设置为全黑的颜色
+
+	/*直方图归一化范围，histImage.rows]*/
+	normalize(hist, hist, 100, 0, cv::NORM_MINMAX, -1, cv::Mat());
+
+	/*画直线*/
+//	for (int i = 1; i < histSize; ++i)
+//	{
+//		//cvRound：类型转换。 这里hist为256*1的一维矩阵，存储的是图像中各个灰度级的归一化值
+//		line(histImage,
+//             Point((i - 1)*3, 100 - cvRound(hist.at<float>(i - 1))),//（x,y）坐标
+//			 Point((i)*3, 100 - cvRound(hist.at<float>(i))),
+//			 Scalar(0, 0, 255), 2, 8, 0);
+//	}
+//    namedWindow("figure_src",1);
+//	namedWindow("figure_hist",1);
+//	imshow("figure_src", src);
+//	imshow("figure_hist", histImage);
+//	waitKey(0);
+	int threshold_hist = 0;
+
+	//寻找适当的二值化权值
+	if (hist.isContinuous())
+	{
+		float * matpt = hist.ptr<float>(0);
+		float sum_hist = 0;
+		for (int i = 0; i < 256; i++)
+		{
+			sum_hist += *(matpt+i);
+//			cout<< *(matpt+i) << " this many pixels belong to the value: "<< i << endl;
+		}
+//		cout << sum_hist << endl;
+		float proper_hist = sum_hist*0.618;
+		float temp_hist = 0;
+
+		for (int i = 0; i < 256; i++)
+		{
+			temp_hist += *(matpt+i);
+			if (proper_hist <= temp_hist)
+			{
+				threshold_hist = i;
+				break;
+			}
+		}
+
+	}
+//	Mat dst;
+//	cout << threshold_hist << endl;
+//	threshold(gray, dst, threshold_hist, 255, CV_THRESH_BINARY);
+//	namedWindow("threshold",1);
+//	imshow("threshold", dst);
+//	imwrite("result_5.png",dst);
+//	waitKey(0);
+//	char delay;
+//	cout << "Type in anything to quit" << endl;
+//	cin >> delay;
+//    cout << threshold_hist;
+	return threshold_hist;
 }

@@ -93,6 +93,7 @@ private:
     void chooseCloseTarget(vector<cv::Point2f>& armors);
     //void cleanAll();
     double tic();
+    int histthre(cv::Mat& gray);
 
 public:
     Armor();
