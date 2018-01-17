@@ -21,7 +21,7 @@ void Armor::init(const cv::Mat& src)
     H_BLUE_CHANGE_THRESHOLD_LOW = 5;
     H_BLUE_CHANGE_THRESHOLD_HIGH = 10;
     S_BLUE_THRESHOLD = 100;
-    BLUE_PIXEL_RATIO_THRESHOLD = 12;
+    BLUE_PIXEL_RATIO_THRESHOLD = 40;//我感觉这个调太高还是不大好，最后这个还是配合深度图调
     getSrcSize(src);
     CIRCLE_ROI_WIDTH = srcW;
     CIRCLE_ROI_HEIGHT = srcH;
@@ -30,6 +30,9 @@ void Armor::init(const cv::Mat& src)
     CIRCLE_AREA_THRESH_MIN = 30;
     target = cv::Point(320, 240);
     is_last_found = false;
+    last_found_2 = false;
+    last_found_3 = false;
+    V_RATIO = 34;
     refresh_ctr = 0;
     V_element_erode = cv::getStructuringElement(
         cv::MORPH_CROSS, cv::Size(ERODE_KSIZE, ERODE_KSIZE));
@@ -70,6 +73,7 @@ void Armor::explore(const cv::Mat& src)
     //}
     //cleanAll();
     cvtHSV(src, hsvSplit);
+    histV(hsvSplit[V_INDEX]);
     getLightRegion(hsvSplit, v_very_high);
     findContours(v_very_high, V_contours,
         CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
@@ -90,6 +94,8 @@ void Armor::track(const cv::Mat& src)
 {
     double fps;
     fps = tic();
+    last_found_3 = last_found_2;
+    last_found_2 = is_last_found;
     if (DRAW & SHOW_DRAW)
         light_draw = src.clone();
 
@@ -533,7 +539,7 @@ int Armor::histthre(cv::Mat& gray)
     cv::Mat histImage(100, 256*3, CV_8UC3, cv::Scalar(0, 0, 0));//设置为全黑的颜色
 
 	/*直方图归一化范围，histImage.rows]*/
-	normalize(hist, hist, 100, 0, cv::NORM_MINMAX, -1, cv::Mat());
+//	normalize(hist, hist, 100, 0, cv::NORM_MINMAX, -1, cv::Mat());
 
 	/*画直线*/
 //	for (int i = 1; i < histSize; ++i)
@@ -555,17 +561,11 @@ int Armor::histthre(cv::Mat& gray)
 	if (hist.isContinuous())
 	{
 		float * matpt = hist.ptr<float>(0);
-		float sum_hist = 0;
-		for (int i = 0; i < 256; i++)
-		{
-			sum_hist += *(matpt+i);
-//			cout<< *(matpt+i) << " this many pixels belong to the value: "<< i << endl;
-		}
 //		cout << sum_hist << endl;
-		float proper_hist = sum_hist*0.618;
+		float proper_hist = Size_of_Frame*0.618;
 		float temp_hist = 0;
 
-		for (int i = 0; i < 256; i++)
+		for (int i = 255; i > -1; i--)
 		{
 			temp_hist += *(matpt+i);
 			if (proper_hist <= temp_hist)
@@ -588,4 +588,66 @@ int Armor::histthre(cv::Mat& gray)
 //	cin >> delay;
 //    cout << threshold_hist;
 	return threshold_hist;
+}
+
+void Armor::histV(cv::Mat& V_channel)
+{
+	cv::Mat V_hist;
+	int histSize = 256;
+	float range[] = { 0, 256 };
+	const float* histRange = { range };
+	int channels[] = {0};
+	bool uniform = true;
+	bool accumulate = false;
+
+	/*计算直方图*/
+	cv::calcHist(&V_channel, 1, channels, cv::Mat(), V_hist, 1, &histSize, &histRange, uniform, accumulate);
+//    cv::calcHist(&hsvSplit[S_INDEX], 1, channels, cv::Mat(), S_hist, 1, &histSize, &histRange, uniform, accumulate);
+
+	//一个点之间的距离，宽度是h，那么把宽度分成了256份
+
+    cv::Mat V_histImage(100, 256, CV_8UC3, cv::Scalar(0, 0, 0));
+	/*直方图归一化范围，histImage.rows]*/
+//	cv::normalize(V_hist, V_hist, 100, 0, cv::NORM_MINMAX, -1, cv::Mat());
+	/*画直线*/
+//	for (int i = 1; i < histSize; ++i)
+//	{
+////		cvRound：类型转换。 这里hist为256*1的一维矩阵，存储的是图像中各个灰度级的归一化值
+//        cv::line(V_histImage,cv::Point(i - 1, 100 - cvRound(V_hist.at<float>(i - 1))),//（x,y）坐标
+//			 cv::Point(i, 100 - cvRound(V_hist.at<float>(i))),
+//			 cv::Scalar(0, 0, 255), 2, 8, 0);
+//	}
+//    cv::line(V_histImage,cv::Point(V_THRESHOLD,0),cv::Point(V_THRESHOLD,100),cv::Scalar(255, 255, 255), 2, 8, 0);
+
+    if (V_hist.isContinuous())
+	{
+		float * matpt = V_hist.ptr<float>(0);
+		float sum_hist = 0;
+//		for (int i = 0; i < 256; i++)
+//		{
+//			sum_hist += *(matpt+i);
+////			cout<< *(matpt+i) << " this many pixels belong to the value: "<< i << endl;
+//		}
+//		cout << "The proper hist would be" << sum_hist << endl;
+		float proper_hist = Size_of_Frame* V_RATIO;
+		float temp_hist = 0;
+
+		for (int i = 255; i > -1; i--)
+		{
+			temp_hist += *(matpt+i) * 1000;
+			if (proper_hist <= temp_hist)
+			{
+				V_THRESHOLD = i;
+				break;
+			}
+		}
+
+	}
+
+//	cv::namedWindow("V_Channel",1);
+//	cv::namedWindow("V_hist",1);
+//	cv::imshow("V_Channel", hsvSplit[V_INDEX]);
+//	cv::imshow("V_hist", V_histImage);
+//	cv::createTrackbar("V_RATIO", "V_Channel", &V_RATIO, 1000);
+//	cv::waitKey(0);
 }

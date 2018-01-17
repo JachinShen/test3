@@ -35,6 +35,7 @@ using namespace std;
 #define S_INDEX 1
 #define H_INDEX 0
 #define U8_MAX 255
+#define Size_of_Frame 307200
 
 class Armor {
 private:
@@ -63,7 +64,10 @@ private:
     int CIRCLE_AREA_THRESH_MIN;
     int DRAW;
     bool is_last_found;
+    bool last_found_2;
+    bool last_found_3;
     int refresh_ctr;
+    int V_RATIO
 
 private:
     cv::Mat light_draw;
@@ -94,6 +98,7 @@ private:
     //void cleanAll();
     double tic();
     int histthre(cv::Mat& gray);
+    void histV(cv::Mat& V_channel);
 
 public:
     Armor();

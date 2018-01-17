@@ -1,0 +1,35 @@
+[33mcommit 8d286499b9f78358ba67485f7e555c92840104c8[m
+Author: Himson <songqianli1228@gmail.com>
+Date:   Wed Jan 17 20:20:47 2018 +0800
+
+    Finish the problem with lost frame
+
+[33mcommit 2bc3112dd5bf0988bd96fc41f2b80fab00711e56[m
+Author: jachinshen <jachinshen@gmail.com>
+Date:   Mon Jan 15 19:52:00 2018 +0800
+
+    revert to cmake for sudo camera
+
+[33mcommit 0ea3bded7efdf6ae8fde99cea5dd4c64e63cda7c[m
+Author: jachinshen <jachinshen@gmail.com>
+Date:   Fri Jan 12 21:05:53 2018 +0800
+
+    split explore and track
+
+[33mcommit 1dd716f82e763ad80eb2e6af025ec59269f6ffe2[m
+Author: jachinshen <jachinshen@gmail.com>
+Date:   Fri Jan 12 20:09:01 2018 +0800
+
+    add Global Camera header
+
+[33mcommit 934823ec809fcb7fc85f0cc97e7f539c28cf008c[m
+Author: jachinshen <jachinshen@gmail.com>
+Date:   Fri Jan 12 16:18:54 2018 +0800
+
+    add serial node
+
+[33mcommit d8091f337334dc886b1668b2bd7b71dc22bf1db5[m
+Author: jachinshen <jachinshen@gmail.com>
+Date:   Sat Dec 16 10:07:40 2017 +0800
+
+    init
