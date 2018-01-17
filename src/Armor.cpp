@@ -569,7 +569,7 @@ int Armor::histthre(cv::Mat& gray)
 		float proper_hist = sum_hist*0.618;
 		float temp_hist = 0;
 
-		for (int i = 0; i < 256; i++)
+		for (int i = 255; i > -1; i--)
 		{
 			temp_hist += *(matpt+i);
 			if (proper_hist <= temp_hist)
