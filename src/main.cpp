@@ -53,9 +53,9 @@ int main(int argc, char* argv[])
              << " " << armor.getTargetX()
              << " " << armor.getTargetY() << endl;
 
-        serial.sendTarget(armor.getTargetX(), armor.getTargetY(), armor.isFound());
+        serial.sendTarget(armor.getTargetX(), armor.getTargetY(), armor.isFound()||armor.last_found_2||armor.last_found_3);
 
-        cv::waitKey(1);
+        cv::waitKey(1);l
     }
     //cap.release();
 }

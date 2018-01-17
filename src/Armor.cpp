@@ -30,6 +30,8 @@ void Armor::init(const cv::Mat& src)
     CIRCLE_AREA_THRESH_MIN = 30;
     target = cv::Point(320, 240);
     is_last_found = false;
+    last_found_2 = false;
+    last_found_3 = false;
     refresh_ctr = 0;
     V_element_erode = cv::getStructuringElement(
         cv::MORPH_CROSS, cv::Size(ERODE_KSIZE, ERODE_KSIZE));
@@ -90,6 +92,8 @@ void Armor::track(const cv::Mat& src)
 {
     double fps;
     fps = tic();
+    last_found_3 = last_found_2;
+    last_found_2 = is_last_found;
     if (DRAW & SHOW_DRAW)
         light_draw = src.clone();
 

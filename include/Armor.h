@@ -63,6 +63,8 @@ private:
     int CIRCLE_AREA_THRESH_MIN;
     int DRAW;
     bool is_last_found;
+    bool last_found_2;
+    bool last_found_3;
     int refresh_ctr;
 
 private:
